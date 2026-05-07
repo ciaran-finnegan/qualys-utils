@@ -75,6 +75,9 @@ async function main() {
         color: tag.color,
         ruleType: tag.ruleType,
         ruleText: tag.ruleText,
+        description: tag.description,
+        criticalityScore: tag.criticalityScore,
+        provider: tag.provider,
         parentTagId: parentTargetId,
       });
       const newId = created.id!;

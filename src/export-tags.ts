@@ -28,6 +28,9 @@ async function main() {
       color: tag.color ?? null,
       ruleType: tag.ruleType ?? null,
       ruleText: tag.ruleText ?? null,
+      description: tag.description ?? null,
+      criticalityScore: tag.criticalityScore ?? null,
+      provider: tag.provider ?? null,
       parentSourceId: tag.parentTagId ?? null,
     });
     if (exported.length % 100 === 0) {

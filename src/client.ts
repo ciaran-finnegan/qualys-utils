@@ -113,12 +113,18 @@ export class QualysClient {
     color?: string | null;
     ruleType?: string | null;
     ruleText?: string | null;
+    description?: string | null;
+    criticalityScore?: number | null;
+    provider?: string | null;
     parentTagId?: number | null;
   }): Promise<Tag> {
     const inner: Record<string, unknown> = { name: tag.name };
     if (tag.color) inner.color = tag.color;
     if (tag.ruleType) inner.ruleType = tag.ruleType;
     if (tag.ruleText) inner.ruleText = tag.ruleText;
+    if (tag.description) inner.description = tag.description;
+    if (tag.criticalityScore != null) inner.criticalityScore = tag.criticalityScore;
+    if (tag.provider) inner.provider = tag.provider;
     if (tag.parentTagId != null) inner.parentTagId = tag.parentTagId;
 
     const reqBody: ServiceRequest<{ Tag: Record<string, unknown> }> = {

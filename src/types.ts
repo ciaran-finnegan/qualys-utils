@@ -20,9 +20,11 @@ export interface Tag {
   color?: string | null;
   ruleType?: string | null;
   ruleText?: string | null;
+  description?: string | null;
+  criticalityScore?: number | null;
+  provider?: string | null;
   srcAssetGroupId?: number | null;
   srcBusinessUnitId?: number | null;
-  provider?: string | null;
   created?: string;
   modified?: string;
   children?: { list?: Array<{ TagSimple: TagSimple }> } | null;
@@ -70,6 +72,9 @@ export interface ExportedTag {
   color: string | null;
   ruleType: string | null;
   ruleText: string | null;
+  description: string | null;
+  criticalityScore: number | null;
+  provider: string | null;
   parentSourceId: number | null;
 }
 
