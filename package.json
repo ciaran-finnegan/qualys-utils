@@ -1,0 +1,20 @@
+{
+  "name": "qualys-utils",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Utilities for migrating configuration between Qualys instances.",
+  "type": "module",
+  "scripts": {
+    "export": "tsx --env-file=.env src/export-tags.ts",
+    "import": "tsx --env-file=.env src/import-tags.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "engines": {
+    "node": ">=20.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  }
+}
