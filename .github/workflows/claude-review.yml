@@ -1,0 +1,108 @@
+name: Claude PR review
+
+# Claude reviews every PR on open + synchronize. Acts as the human reviewer
+# under branch protection — its APPROVE review counts toward the required-1
+# approval. Major-version Dependabot bumps and PRs Claude has concerns with
+# get a COMMENT review instead, leaving them blocked until a human acts.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            You are the automated reviewer for pull requests in
+            ciaran-finnegan/qualys-utils. Your APPROVE review counts as the
+            required reviewer under this repo's branch protection.
+
+            Context for this run:
+            - PR number: ${{ github.event.pull_request.number }}
+            - Title: ${{ github.event.pull_request.title }}
+            - Author: ${{ github.event.pull_request.user.login }}
+            - Base: ${{ github.event.pull_request.base.ref }}
+            - Head: ${{ github.event.pull_request.head.ref }}
+
+            ## Step 1: gather information
+
+            Use the `gh` CLI to read the PR. Specifically:
+            - `gh pr view ${{ github.event.pull_request.number }} --json title,body,labels,additions,deletions,changedFiles,files`
+            - `gh pr diff ${{ github.event.pull_request.number }}`
+
+            If the author is `dependabot[bot]`, also classify the semver
+            level from the PR title. Titles look like:
+            - "Bump <pkg> from <old> to <new>"
+            - "Bump the patch-and-minor group with N updates"
+            Compare versions to decide patch / minor / major.
+
+            ## Step 2: review
+
+            Look for:
+            - **Secrets**: any credential, token, key, or internal endpoint
+              accidentally committed.
+            - **Scope creep**: changes outside what the PR title implies.
+            - **Type safety**: code that bypasses TypeScript strictness or
+              uses `any` without justification.
+            - **Tag round-trip**: any change that drops a Tag field on
+              export OR fails to forward it on import. The set of fields
+              today is: name, color, ruleType, ruleText, description,
+              criticalityScore, provider, parentSourceId.
+            - **Backup safety**: import-tags.ts MUST snapshot the target
+              before any writes — flag anything that breaks that contract.
+            - **Test/typecheck signal**: confirm the CI workflow ran and
+              passed (`gh pr checks ${{ github.event.pull_request.number }}`).
+            - **Breaking changes** in dependency bumps: read changelogs
+              when sensible; for major bumps assume breaking unless
+              proven otherwise.
+            - **License & supply chain**: dependency-review-action already
+              gates this, but flag anything suspicious it might have
+              missed.
+
+            ## Step 3: act
+
+            Decide one of:
+
+            **APPROVE** — post via `gh pr review ${{ github.event.pull_request.number }} --approve --body "<your summary>"`. Use this when:
+            - Dependabot patch or minor update with a clean diff and
+              passing CI.
+            - Human PR with a focused, well-tested change and no findings.
+
+            **COMMENT** — post via `gh pr review ${{ github.event.pull_request.number }} --comment --body "<your findings>"`. Use this when:
+            - Dependabot major-version bump (always — these need human
+              evaluation of breaking changes).
+            - Any PR where you found something that should be addressed
+              before merge but isn't a blocker.
+
+            **REQUEST CHANGES** — post via `gh pr review ${{ github.event.pull_request.number }} --request-changes --body "<your findings>"`. Use this when:
+            - Secrets leaked.
+            - Tag round-trip broken.
+            - Backup-before-write contract broken.
+            - Tests / typecheck failing and the PR doesn't mention it.
+
+            For Dependabot major bumps, also ensure the labels
+            `needs-review` and `major-version` are present (the existing
+            dependabot-auto-merge.yml workflow adds them, but verify).
+
+            Keep your review body concise — a few bullet points, not an
+            essay. End with a single-line verdict, e.g.
+            "Verdict: APPROVE — patch bump, CI green."
+
+            Do NOT post a duplicate review if you've already reviewed this
+            HEAD commit. Check `gh pr view --json reviews` first.
+          claude_args: '--allowed-tools "Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr checks:*),Bash(gh pr review:*),Bash(gh pr edit:*),Bash(gh pr comment:*),Bash(gh api:*),Bash(git log:*),Bash(git diff:*),Bash(git show:*),Bash(npm view:*)"'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

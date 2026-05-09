@@ -180,16 +180,38 @@ This repo runs a stack of GitHub-native checks on every push and PR:
 | Dependabot version updates | Keeps deps current; patch+minor grouped per ecosystem | Weekly (Mondays) |
 | OSSF Scorecard | Supply-chain best-practice score, results in Code Scanning | Weekly + on push |
 
-### Auto-merge policy
+### Review and auto-merge policy
 
-Dependabot PRs follow this policy via `.github/workflows/dependabot-auto-merge.yml`:
+Every PR is reviewed by Claude via `.github/workflows/claude-review.yml`,
+using the official [`anthropics/claude-code-action`][cca]. Branch protection
+requires **1 approving review** to merge — Claude's APPROVE satisfies that
+requirement.
 
-- **Patch + minor** updates → auto-merge after CI typecheck passes.
-- **Major** updates → labelled `needs-review,major-version` and left for human review.
-- **Security updates** for vulnerable deps inherit the same policy: patch and minor merge automatically once CI is green.
+[cca]: https://github.com/anthropics/claude-code-action
 
-Human-authored PRs require the `typecheck` status check to be green; review is
-recommended but not required, since the repo has a single maintainer.
+What Claude looks at on every PR:
+
+- Secrets, internal endpoints, or other credentials accidentally committed
+- Scope creep beyond the PR's stated purpose
+- Tag-field round-trip integrity (export must preserve every field that
+  import sets, and vice versa)
+- The pre-write target backup contract in `import-tags.ts`
+- TypeScript strictness — no unjustified `any` or unsafe casts
+- CI / typecheck status — must be green
+- For dependency bumps: changelogs and breaking-change risk
+
+Outcomes:
+
+- **Patch + minor Dependabot updates** → Claude approves, the existing
+  `dependabot-auto-merge` workflow squash-merges automatically.
+- **Major Dependabot updates** → Claude posts a COMMENT review (does not
+  approve) and the PR is labelled `needs-review,major-version` for a human
+  to evaluate.
+- **Security updates** → same as above, by semver level. Patch and minor
+  fixes for CVEs auto-merge once green.
+- **Human PRs** → Claude approves clean focused changes, requests changes
+  for blockers (broken backups, leaked secrets, broken round-trip),
+  comments for non-blocking concerns.
 
 ### Reporting a vulnerability
 
