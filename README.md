@@ -173,6 +173,7 @@ This repo runs a stack of GitHub-native checks on every push and PR:
 |---|---|---|
 | CI typecheck | Strict TypeScript compile, blocks merge | Every push + PR |
 | CodeQL | Static analysis with `security-extended` queries; results in Code Scanning | Every push + PR + weekly |
+| Claude PR review | Agent reviewer; APPROVE counts toward branch protection's required-1 | Every PR |
 | Dependency Review | Blocks PRs that introduce CVE-laden or copyleft-licensed deps | Every PR |
 | Secret scanning + push protection | Detects and blocks committed credentials | Every push |
 | Dependabot alerts | Flags vulnerable dependencies in main | Continuous |
