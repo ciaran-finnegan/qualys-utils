@@ -1,6 +1,8 @@
 # qualys-utils
 
 [![CI](https://github.com/ciaran-finnegan/qualys-utils/actions/workflows/ci.yml/badge.svg)](https://github.com/ciaran-finnegan/qualys-utils/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/ciaran-finnegan/qualys-utils/actions/workflows/codeql.yml/badge.svg)](https://github.com/ciaran-finnegan/qualys-utils/actions/workflows/codeql.yml)
+[![OSSF Scorecard](https://api.scorecard.dev/projects/github.com/ciaran-finnegan/qualys-utils/badge)](https://scorecard.dev/viewer/?uri=github.com/ciaran-finnegan/qualys-utils)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 Migrate asset tag configuration between two Qualys subscriptions.
@@ -162,6 +164,37 @@ All from the [Asset Management & Tagging API v2][api-guide]:
 
 Authentication is HTTP Basic with your Qualys username and password — the
 same credentials you use to log into the Qualys UI. No API tokens required.
+
+## Security and dependency policy
+
+This repo runs a stack of GitHub-native checks on every push and PR:
+
+| Check | Purpose | Cadence |
+|---|---|---|
+| CI typecheck | Strict TypeScript compile, blocks merge | Every push + PR |
+| CodeQL | Static analysis with `security-extended` queries; results in Code Scanning | Every push + PR + weekly |
+| Dependency Review | Blocks PRs that introduce CVE-laden or copyleft-licensed deps | Every PR |
+| Secret scanning + push protection | Detects and blocks committed credentials | Every push |
+| Dependabot alerts | Flags vulnerable dependencies in main | Continuous |
+| Dependabot security updates | Opens PRs to fix vulnerable deps | Continuous |
+| Dependabot version updates | Keeps deps current; patch+minor grouped per ecosystem | Weekly (Mondays) |
+| OSSF Scorecard | Supply-chain best-practice score, results in Code Scanning | Weekly + on push |
+
+### Auto-merge policy
+
+Dependabot PRs follow this policy via `.github/workflows/dependabot-auto-merge.yml`:
+
+- **Patch + minor** updates → auto-merge after CI typecheck passes.
+- **Major** updates → labelled `needs-review,major-version` and left for human review.
+- **Security updates** for vulnerable deps inherit the same policy: patch and minor merge automatically once CI is green.
+
+Human-authored PRs require the `typecheck` status check to be green; review is
+recommended but not required, since the repo has a single maintainer.
+
+### Reporting a vulnerability
+
+See [SECURITY.md](SECURITY.md) — please report privately via GitHub Security
+Advisories rather than opening a public issue.
 
 ## License
 

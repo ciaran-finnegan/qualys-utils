@@ -1,0 +1,25 @@
+name: Dependency review
+
+# Runs on every PR to main. Fails the PR if it introduces a dependency with
+# a known CVE or a forbidden license.
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: moderate
+          comment-summary-in-pr: on-failure
+          # Block dependencies under copyleft licenses we don't want.
+          deny-licenses: AGPL-1.0-or-later, AGPL-3.0-or-later, GPL-2.0-only, GPL-3.0-only
